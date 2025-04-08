@@ -21,6 +21,23 @@ server:
       force: true
       enabled: true
 
+# Swagger/OpenAPI 설정
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    # API 문서 상대 경로 설정
+    disable-swagger-default-url: true
+    # 태그 정렬
+    tags-sorter: alpha
+    operationsSorter: alpha
+    # 기본으로 펼쳐질 API 목록
+    default-models-expand-depth: -1
+    # JWT 인증 지원 활성화
+    oauth:
+      use-pkce-with-authorization-code-grant: true
+
 # 기본 로깅 설정 (최소한으로 유지)
 logging:
   level:

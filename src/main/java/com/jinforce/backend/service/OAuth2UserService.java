@@ -25,7 +25,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     
-    @Value("${admin.emails:}")
+    @Value("#{'${admin.emails}'.split(',')}")
     private List<String> adminEmails;
 
     @Override
@@ -37,6 +37,11 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         User.AuthProvider provider = getProvider(registrationId);
 
         OAuth2UserInfoDto userInfo = OAuth2UserInfoDto.of(provider, oAuth2User.getAttributes());
+        
+        // 관리자 이메일 목록 로깅
+        logAdminEmails();
+        log.info("User login: {}, checking if admin...", userInfo.getEmail());
+        log.info("Is admin: {}", isAdminEmail(userInfo.getEmail()));
 
         User user = processOAuth2User(userInfo);
 
@@ -79,6 +84,12 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
     private User updateExistingUser(User existingUser, OAuth2UserInfoDto userInfo) {
         existingUser.setName(userInfo.getName());
         existingUser.setImageUrl(userInfo.getImageUrl());
+        
+        // 관리자 이메일 확인 및 권한 업데이트
+        if (isAdminEmail(userInfo.getEmail()) && !existingUser.getRoles().contains(User.Role.ROLE_ADMIN)) {
+            existingUser.getRoles().add(User.Role.ROLE_ADMIN);
+        }
+        
         return userRepository.save(existingUser);
     }
 
@@ -133,5 +144,10 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         }
         
         return user;
+    }
+
+    // 로깅 메서드 추가
+    private void logAdminEmails() {
+        log.info("Admin emails loaded: {}", adminEmails);
     }
 }

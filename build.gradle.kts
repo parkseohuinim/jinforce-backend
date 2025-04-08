@@ -28,7 +28,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client") // OAuth2
     implementation("org.springframework.boot:spring-boot-starter-data-jpa") // JPA
     implementation("org.springframework.boot:spring-boot-starter-validation") // 검증
-
+    
+    // API 문서화를 위한 SpringDoc OpenAPI (Swagger)
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
+    
     // JWT 라이브러리 - 인증에 사용
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
