@@ -47,6 +47,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("error", status.getReasonPhrase());
         body.put("message", message);
 
-        return new ResponseEntity<>(body, status);
+        return ResponseEntity
+            .status(status)
+            .header("Content-Type", "application/json;charset=UTF-8")
+            .body(body);
     }
 }

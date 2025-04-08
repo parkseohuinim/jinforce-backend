@@ -26,7 +26,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,7 +37,6 @@ public class AuthService {
     private final JwtService jwtService;
     private final OAuth2UserService oAuth2UserService;
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
 
     @Value("${spring.security.oauth2.client.provider.google.user-info-uri}")
     private String googleUserInfoUri;
@@ -46,19 +44,19 @@ public class AuthService {
     /**
      * Google 토큰으로 인증하고 JWT 토큰을 생성합니다.
      *
-     * @param tokenInfo 구글 토큰 정보(ID 토큰, 액세스 토큰)
+     * @param authRequest 구글 인증 요청 정보(액세스 토큰)
      * @return JWT 토큰 응답
      * @throws TokenException 토큰 인증 중 오류 발생시
      */
     @Transactional
-    public TokenDto authenticateWithGoogle(TokenDto.GoogleTokenInfo tokenInfo) {
-        if (tokenInfo == null || tokenInfo.getAccessToken() == null || tokenInfo.getAccessToken().isBlank()) {
+    public TokenDto authenticateWithGoogle(TokenDto.GoogleAuthRequest authRequest) {
+        if (authRequest == null || authRequest.getAccessToken() == null || authRequest.getAccessToken().isBlank()) {
             throw new TokenException("Google access token is required");
         }
 
         try {
             // Google 사용자 정보 요청
-            GoogleUserInfoDto userInfo = fetchGoogleUserInfo(tokenInfo.getAccessToken());
+            GoogleUserInfoDto userInfo = fetchGoogleUserInfo(authRequest.getAccessToken());
 
             // OAuth2 사용자 처리
             OAuth2UserInfoDto oAuth2UserInfo = OAuth2UserInfoDto.of(User.AuthProvider.GOOGLE, userInfo.toAttributeMap());

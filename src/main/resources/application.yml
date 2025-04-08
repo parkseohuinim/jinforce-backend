@@ -1,22 +1,33 @@
 spring:
+  # 활성 프로필 설정
   profiles:
     active: local
+  
+  # 기본 JPA 설정 (모든 환경에 공통으로 적용)
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-        show_sql: true
     open-in-view: false
+    # SQL 로깅 관련 설정은 프로필별 설정으로 이동
 
+# 서버 설정
 server:
   port: 8080
   servlet:
     context-path: /api
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
 
+# 기본 로깅 설정 (최소한으로 유지)
 logging:
   level:
-    org.springframework.security: INFO
-    com.jinforce: DEBUG
+    root: INFO
+    # 상세 로깅 설정은 각 환경별 파일(application-{profile}.yml)에서 정의
+
+# 환경별 설정 참고사항
+# - 관리자 계정: 각 환경별 설정 파일에서 정의 (application-{profile}.yml)
+# - 데이터베이스 연결: 각 환경별 설정 파일에서 정의
+# - 민감 정보: 환경 변수 또는 .env 파일을 통해 제공
