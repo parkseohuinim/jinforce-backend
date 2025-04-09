@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -86,8 +87,8 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         existingUser.setImageUrl(userInfo.getImageUrl());
         
         // 관리자 이메일 확인 및 권한 업데이트
-        if (isAdminEmail(userInfo.getEmail()) && !existingUser.getRoles().contains(User.Role.ROLE_ADMIN)) {
-            existingUser.getRoles().add(User.Role.ROLE_ADMIN);
+        if (isAdminEmail(userInfo.getEmail()) && !existingUser.isAdmin()) {
+            existingUser.addAdminRole();
         }
         
         return userRepository.save(existingUser);
@@ -106,12 +107,11 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                 .imageUrl(userInfo.getImageUrl())
                 .provider(userInfo.getProvider())
                 .providerId(userInfo.getId())
-                .roles(Collections.singletonList(User.Role.ROLE_USER))
-                .build();
+                .build();  // User 엔티티의 @PrePersist가 기본 ROLE_USER 권한을 추가함
         
         // 관리자 이메일이면 관리자 권한 추가
         if (isAdminEmail(userInfo.getEmail())) {
-            user.getRoles().add(User.Role.ROLE_ADMIN);
+            user.addAdminRole();
         }
         
         return userRepository.save(user);
@@ -138,12 +138,8 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
         
-        if (!user.getRoles().contains(User.Role.ROLE_ADMIN)) {
-            user.getRoles().add(User.Role.ROLE_ADMIN);
-            userRepository.save(user);
-        }
-        
-        return user;
+        user.addAdminRole();
+        return userRepository.save(user);
     }
 
     // 로깅 메서드 추가

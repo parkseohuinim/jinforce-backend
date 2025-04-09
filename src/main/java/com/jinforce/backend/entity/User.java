@@ -38,6 +38,9 @@ public class User {
     // 프로필 이미지 URL
     private String imageUrl;
 
+    // 비밀번호 (로컬 로그인용)
+    private String password;
+
     // 인증 제공자 (GOOGLE, FACEBOOK 등)
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
@@ -53,6 +56,7 @@ public class User {
             schema = "jinforce_schema",
             joinColumns = @JoinColumn(name = "user_id")
     )
+    @Column(name = "roles")
     @Builder.Default
     private List<Role> roles = new ArrayList<>();
 
@@ -63,6 +67,48 @@ public class User {
     // 레코드 마지막 수정 시간 (자동 기록)
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    /**
+     * 사용자 생성 시 기본 권한(ROLE_USER)을 설정합니다.
+     */
+    @PrePersist
+    protected void onCreate() {
+        if (roles == null) {
+            roles = new ArrayList<>();
+        }
+        
+        if (roles.isEmpty()) {
+            roles.add(Role.ROLE_USER);
+        }
+    }
+
+    /**
+     * 관리자 권한을 추가합니다.
+     * 이미 관리자 권한이 있는 경우 아무 작업도 하지 않습니다.
+     */
+    public void addAdminRole() {
+        if (roles == null) {
+            roles = new ArrayList<>();
+        }
+        
+        if (!hasRole(Role.ROLE_ADMIN)) {
+            roles.add(Role.ROLE_ADMIN);
+        }
+    }
+
+    /**
+     * 지정된 권한이 있는지 확인합니다.
+     */
+    public boolean hasRole(Role role) {
+        return roles != null && roles.contains(role);
+    }
+
+    /**
+     * 관리자 권한이 있는지 확인합니다.
+     */
+    public boolean isAdmin() {
+        return hasRole(Role.ROLE_ADMIN);
+    }
 
     /**
      * 지원하는 인증 제공자 유형

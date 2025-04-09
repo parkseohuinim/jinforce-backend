@@ -8,6 +8,9 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: jinforce_schema
     open-in-view: false
     # SQL 로깅 관련 설정은 프로필별 설정으로 이동
 
@@ -43,6 +46,19 @@ logging:
   level:
     root: INFO
     # 상세 로깅 설정은 각 환경별 파일(application-{profile}.yml)에서 정의
+
+# AWS SES 설정 (기본값)
+aws:
+  ses:
+    region: ap-northeast-2
+    # 민감 정보는 프로필별 설정 파일에서 정의
+
+# 토큰 설정
+token:
+  email-verification:
+    expiration-minutes: 1440  # 24시간
+  password-reset:
+    expiration-minutes: 60    # 1시간
 
 # 환경별 설정 참고사항
 # - 관리자 계정: 각 환경별 설정 파일에서 정의 (application-{profile}.yml)

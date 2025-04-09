@@ -20,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
@@ -37,6 +38,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final OAuth2UserService oAuth2UserService;
     private final RestTemplate restTemplate;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${spring.security.oauth2.client.provider.google.user-info-uri}")
     private String googleUserInfoUri;
@@ -180,5 +182,36 @@ public class AuthService {
 
         // 리프레시 토큰 무효화
         jwtService.invalidateRefreshToken(user);
+    }
+
+    /**
+     * 이메일과 비밀번호로 로그인을 처리합니다.
+     *
+     * @param email 이메일
+     * @param password 비밀번호
+     * @return JWT 토큰 응답
+     * @throws UserException 사용자가 존재하지 않거나 비밀번호가 일치하지 않는 경우
+     */
+    @Transactional
+    public TokenDto loginWithEmailPassword(String email, String password) {
+        // 사용자 확인
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserException("등록되지 않은 이메일입니다."));
+        
+        // LOCAL 로그인 방식인지 확인
+        if (user.getProvider() != User.AuthProvider.LOCAL) {
+            throw new UserException("소셜 로그인 계정입니다. 해당 소셜 로그인을 이용해주세요: " + user.getProvider());
+        }
+        
+        // 비밀번호 검증
+        if (user.getPassword() == null || !passwordEncoder.matches(password, user.getPassword())) {
+            throw new UserException("비밀번호가 일치하지 않습니다.");
+        }
+        
+        // 인증 객체 생성
+        Authentication authentication = createAuthentication(user);
+        
+        // JWT 토큰 발급
+        return jwtService.generateTokens(authentication);
     }
 }

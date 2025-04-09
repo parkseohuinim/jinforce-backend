@@ -13,6 +13,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 /**
  * 인증 관련 API 엔드포인트 컨트롤러
@@ -52,6 +55,30 @@ public class AuthController {
             @RequestBody TokenDto.GoogleAuthRequest authRequest) {
         TokenDto token = authService.authenticateWithGoogle(authRequest);
         return ResponseEntity.ok(token);
+    }
+
+    /**
+     * 이메일/비밀번호를 사용한 로컬 로그인
+     */
+    @Operation(
+        summary = "이메일 로그인", 
+        description = "이메일과 비밀번호로 로그인하고 JWT 토큰을 발급받습니다"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200", 
+            description = "로그인 성공", 
+            content = @Content(schema = @Schema(implementation = TokenDto.class))
+        ),
+        @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content)
+    })
+    @PostMapping("/login")
+    public ResponseEntity<TokenDto> emailLogin(@RequestBody LoginRequest loginRequest) {
+        TokenDto tokenDto = authService.loginWithEmailPassword(
+                loginRequest.getEmail(),
+                loginRequest.getPassword()
+        );
+        return ResponseEntity.ok(tokenDto);
     }
 
     /**
@@ -126,5 +153,13 @@ public class AuthController {
             @RequestBody TokenDto.Request request) {
         authService.logout(request.getToken());
         return ResponseEntity.ok().build();
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LoginRequest {
+        private String email;
+        private String password;
     }
 }

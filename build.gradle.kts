@@ -43,6 +43,9 @@ dependencies {
     // 환경변수 설정 라이브러리
     implementation("me.paulschwarz:spring-dotenv:3.0.0")
 
+    // AWS SES SDK
+    implementation("com.amazonaws:aws-java-sdk-ses:1.12.529")
+
     // Lombok - 코드 간소화
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
