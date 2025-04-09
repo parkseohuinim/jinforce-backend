@@ -1,4 +1,4 @@
-package com.jinforce.backend.security;
+package com.jinforce.backend.service;
 
 import com.jinforce.backend.entity.User;
 import com.jinforce.backend.repository.UserRepository;
