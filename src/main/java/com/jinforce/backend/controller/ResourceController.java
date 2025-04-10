@@ -4,13 +4,15 @@ import com.jinforce.backend.dto.UserDto;
 import com.jinforce.backend.entity.User;
 import com.jinforce.backend.repository.UserRepository;
 import com.jinforce.backend.service.AuthService;
+import com.jinforce.backend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 보호된 리소스 접근 컨트롤러
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
 public class ResourceController {
 
     private final AuthService authService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     /**
      * 공개 리소스 API
@@ -89,10 +90,7 @@ public class ResourceController {
     @GetMapping("/admin/users")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<UserDto>> getAllUsers() {
-        List<UserDto> users = userRepository.findAll().stream()
-                .map(UserDto::fromEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
     /**
@@ -111,45 +109,29 @@ public class ResourceController {
     @GetMapping("/admin/stats")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Map<String, Object>> getSystemStats() {
-        long userCount = userRepository.count();
-        long adminCount = userRepository.findAll().stream()
-                .filter(user -> user.getRoles().contains(User.Role.ROLE_ADMIN))
-                .count();
-        
-        return ResponseEntity.ok(Map.of(
-                "totalUsers", userCount,
-                "adminUsers", adminCount,
-                "systemVersion", "1.0.0",
-                "lastUpdated", System.currentTimeMillis()
-        ));
+        return ResponseEntity.ok(userService.getSystemStats());
     }
     
     /**
      * 관리자 권한 추가 API
-     * 특정 이메일의 사용자에게 관리자 권한을 추가
+     * 보안을 위해 인증 요구 및 기존 관리자 권한 필요
      */
     @Operation(
         summary = "관리자 권한 추가", 
-        description = "특정 이메일의 사용자에게 관리자 권한을 추가합니다. 인증 없이 누구나 접근 가능합니다."
+        description = "특정 이메일의 사용자에게 관리자 권한을 추가합니다. 관리자만 접근 가능합니다."
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "권한 추가 성공",
                 content = @Content(schema = @Schema(implementation = UserDto.class))),
-        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "403", description = "권한 없음"),
+        @ApiResponse(responseCode = "401", description = "인증 필요")
     })
-    @PostMapping("/add-admin/{email}")
-    @Transactional
+    @PostMapping("/admin/add-admin/{email}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<UserDto> addAdminRole(
             @Parameter(description = "관리자 권한을 추가할 사용자의 이메일", required = true)
             @PathVariable String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
-        
-        if (!user.getRoles().contains(User.Role.ROLE_ADMIN)) {
-            user.getRoles().add(User.Role.ROLE_ADMIN);
-            userRepository.save(user);
-        }
-        
-        return ResponseEntity.ok(UserDto.fromEntity(user));
+        return ResponseEntity.ok(userService.addAdminRole(email));
     }
 }

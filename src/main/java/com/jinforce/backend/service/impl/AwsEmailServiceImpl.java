@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AwsSesEmailService implements EmailService {
+public class AwsEmailServiceImpl implements EmailService {
 
     private final AmazonSimpleEmailService amazonSES;
 
@@ -52,39 +52,6 @@ public class AwsSesEmailService implements EmailService {
             "</div>" +
             "</body>" +
             "</html>", verificationUrl, verificationUrl, verificationUrl);
-
-        sendEmail(to, subject, htmlBody);
-    }
-
-    @Override
-    public void sendPasswordResetEmail(String to, String token) {
-        String subject = "진포스 - 비밀번호 재설정";
-        String resetUrl = String.format("http://localhost:%s%s/auth/reset-password?token=%s", 
-                       serverPort, contextPath, token);
-        
-        String htmlBody = String.format(
-            "<html>" +
-            "<body style='font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333;'>" +
-            "<div style='max-width: 600px; margin: 0 auto; background-color: #fff; border: 1px solid #e9e9e9; border-radius: 5px; overflow: hidden;'>" +
-            "<div style='background-color: #4A69BD; padding: 20px; text-align: center;'>" +
-            "<h1 style='color: white; margin: 0;'>진포스 비밀번호 재설정</h1>" +
-            "</div>" +
-            "<div style='padding: 20px;'>" +
-            "<p>안녕하세요,</p>" +
-            "<p>비밀번호 재설정을 요청하셨습니다.</p>" +
-            "<p>아래 버튼을 클릭하여 비밀번호를 재설정해주세요:</p>" +
-            "<div style='text-align: center; margin: 30px 0;'>" +
-            "<a href='%s' style='background-color: #4A69BD; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;'>비밀번호 재설정하기</a>" +
-            "</div>" +
-            "<p>또는 다음 링크를 브라우저에 복사하여 접속해주세요:</p>" +
-            "<p style='word-break: break-all;'><a href='%s'>%s</a></p>" +
-            "<p>이 링크는 1시간 동안 유효합니다.</p>" +
-            "<p>본인이 요청하지 않았다면 이 이메일을 무시하셔도 됩니다.</p>" +
-            "<p>감사합니다,<br/>진포스 팀</p>" +
-            "</div>" +
-            "</div>" +
-            "</body>" +
-            "</html>", resetUrl, resetUrl, resetUrl);
 
         sendEmail(to, subject, htmlBody);
     }

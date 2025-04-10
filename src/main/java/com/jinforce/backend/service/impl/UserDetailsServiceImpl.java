@@ -1,4 +1,4 @@
-package com.jinforce.backend.service;
+package com.jinforce.backend.service.impl;
 
 import com.jinforce.backend.entity.User;
 import com.jinforce.backend.repository.UserRepository;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CustomUserDetailsService implements UserDetailsService {
+public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
 

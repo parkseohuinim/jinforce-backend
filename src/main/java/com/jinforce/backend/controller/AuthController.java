@@ -74,7 +74,7 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<TokenDto> emailLogin(@RequestBody LoginRequest loginRequest) {
-        TokenDto tokenDto = authService.loginWithEmailPassword(
+        TokenDto tokenDto = authService.login(
                 loginRequest.getEmail(),
                 loginRequest.getPassword()
         );
