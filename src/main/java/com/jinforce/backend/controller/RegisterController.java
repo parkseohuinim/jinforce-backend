@@ -1,5 +1,8 @@
 package com.jinforce.backend.controller;
 
+import com.jinforce.backend.dto.EmailRequestDto;
+import com.jinforce.backend.dto.OtpPasswordResetRequestDto;
+import com.jinforce.backend.dto.SignupRequestDto;
 import com.jinforce.backend.dto.TokenDto;
 import com.jinforce.backend.service.EmailVerificationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,9 +11,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +33,13 @@ public class RegisterController {
         @ApiResponse(responseCode = "409", description = "이미 등록된 이메일")
     })
     @PostMapping("")
-    public ResponseEntity<Map<String, String>> signupWithEmail(@RequestBody SignupRequest request) {
+    public ResponseEntity<Map<String, String>> signupWithEmail(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "회원가입 정보", 
+                required = true, 
+                content = @Content(schema = @Schema(implementation = SignupRequestDto.class))
+            )
+            @RequestBody SignupRequestDto request) {
         // 이메일 인증 토큰 생성 및 이메일 발송
         String token = emailVerificationService.createEmailVerificationTokenWithUserInfo(
                 request.getEmail(), 
@@ -73,7 +79,13 @@ public class RegisterController {
         @ApiResponse(responseCode = "400", description = "등록되지 않은 이메일")
     })
     @PostMapping("/password/request-otp")
-    public ResponseEntity<Map<String, String>> requestPasswordResetOtp(@RequestBody EmailRequest request) {
+    public ResponseEntity<Map<String, String>> requestPasswordResetOtp(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "비밀번호 재설정 요청 이메일", 
+                required = true, 
+                content = @Content(schema = @Schema(implementation = EmailRequestDto.class))
+            )
+            @RequestBody EmailRequestDto request) {
         emailVerificationService.createPasswordResetOtp(request.getEmail());
         
         Map<String, String> response = new HashMap<>();
@@ -87,7 +99,13 @@ public class RegisterController {
         @ApiResponse(responseCode = "400", description = "유효하지 않은 인증 코드 또는 요청")
     })
     @PostMapping("/password/reset-with-otp")
-    public ResponseEntity<Map<String, String>> resetPasswordWithOtp(@RequestBody OtpPasswordResetRequest request) {
+    public ResponseEntity<Map<String, String>> resetPasswordWithOtp(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "비밀번호 재설정 정보", 
+                required = true, 
+                content = @Content(schema = @Schema(implementation = OtpPasswordResetRequestDto.class))
+            )
+            @RequestBody OtpPasswordResetRequestDto request) {
         emailVerificationService.resetPasswordWithOtp(
             request.getEmail(),
             request.getOtp(),
@@ -97,30 +115,5 @@ public class RegisterController {
         Map<String, String> response = new HashMap<>();
         response.put("message", "비밀번호가 성공적으로 재설정되었습니다.");
         return ResponseEntity.ok(response);
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class EmailRequest {
-        private String email;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class SignupRequest {
-        private String email;
-        private String name;
-        private String password;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class OtpPasswordResetRequest {
-        private String email;
-        private String otp;
-        private String password;
     }
 } 

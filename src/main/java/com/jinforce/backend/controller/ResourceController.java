@@ -123,7 +123,8 @@ public class ResourceController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "권한 추가 성공",
                 content = @Content(schema = @Schema(implementation = UserDto.class))),
-        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음"),
+        @ApiResponse(responseCode = "404", description = "존재하지 않는 사용자 이메일"),
+        @ApiResponse(responseCode = "409", description = "이미 관리자 권한을 가진 사용자"),
         @ApiResponse(responseCode = "403", description = "권한 없음"),
         @ApiResponse(responseCode = "401", description = "인증 필요")
     })

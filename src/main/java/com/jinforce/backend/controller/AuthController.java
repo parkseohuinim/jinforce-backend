@@ -1,5 +1,6 @@
 package com.jinforce.backend.controller;
 
+import com.jinforce.backend.dto.LoginRequestDto;
 import com.jinforce.backend.dto.TokenDto;
 import com.jinforce.backend.dto.UserDto;
 import com.jinforce.backend.service.AuthService;
@@ -13,9 +14,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 /**
  * 인증 관련 API 엔드포인트 컨트롤러
@@ -73,7 +71,13 @@ public class AuthController {
         @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content)
     })
     @PostMapping("/login")
-    public ResponseEntity<TokenDto> emailLogin(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<TokenDto> emailLogin(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "로그인 정보", 
+                required = true, 
+                content = @Content(schema = @Schema(implementation = LoginRequestDto.class))
+            )
+            @RequestBody LoginRequestDto loginRequest) {
         TokenDto tokenDto = authService.login(
                 loginRequest.getEmail(),
                 loginRequest.getPassword()
@@ -86,7 +90,7 @@ public class AuthController {
      */
     @Operation(
         summary = "토큰 갱신", 
-        description = "리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다"
+        description = "리프레시 토큰을 사용하여 새로운 액세스 토큰과 리프레시 토큰을 발급받습니다"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -99,12 +103,12 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<TokenDto> refreshToken(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                description = "리프레시 토큰", 
+                description = "리프레시 토큰 요청 정보", 
                 required = true,
                 content = @Content(schema = @Schema(implementation = TokenDto.Request.class))
             )
             @RequestBody TokenDto.Request request) {
-        TokenDto token = authService.refreshToken(request.getToken());
+        TokenDto token = authService.refreshToken(request.getRefreshToken());
         return ResponseEntity.ok(token);
     }
 
@@ -146,20 +150,12 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                description = "리프레시 토큰", 
+                description = "무효화할 리프레시 토큰 정보", 
                 required = true,
                 content = @Content(schema = @Schema(implementation = TokenDto.Request.class))
             )
             @RequestBody TokenDto.Request request) {
-        authService.logout(request.getToken());
+        authService.logout(request.getRefreshToken());
         return ResponseEntity.ok().build();
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class LoginRequest {
-        private String email;
-        private String password;
     }
 }

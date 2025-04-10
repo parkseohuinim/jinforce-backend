@@ -31,8 +31,8 @@ public class TokenDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Request {
-        @Schema(description = "요청에 사용할 토큰", example = "abcdefgh...")
-        private String token;
+        @Schema(description = "리프레시 토큰", example = "abcdefgh...")
+        private String refreshToken;
     }
 
     /**
